@@ -1,11 +1,31 @@
-// Retire the old SpaceX demo service worker and its cached home page.
-self.addEventListener('install', () => self.skipWaiting());
+/* eslint-disable arrow-body-style */
+/* eslint-disable arrow-parens */
+/* eslint-disable no-undef */
+/* eslint-disable no-restricted-globals */
+const platzinautas = 'platzinautas-site-v1';
+const assets = [
+  '/',
+  'index.html',
+  'js/launch.js',
+  'img/astronauta.png',
+  'img/favicon.ico',
+  'img/platzi-logo.png',
+  'img/SpaceX_logo_black.svg.png',
+]
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    await caches.delete('platzinautas-site-v1');
-    await self.registration.unregister();
-    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    await Promise.all(windows.map((client) => client.navigate(client.url)));
-  })());
+// eslint-disable-next-line arrow-parens
+self.addEventListener('install', installEvent => {
+  installEvent.waitUntil(
+    caches.open(platzinautas).then(cache => {
+      cache.addAll(assets);
+    })
+  );
+});
+
+self.addEventListener('fetch', fetchEvent => {
+  fetchEvent.respondWith(
+    caches.match(fetchEvent.request).then(res => {
+      return res || fetch(fetchEvent.request);
+    }),
+  );
 });
